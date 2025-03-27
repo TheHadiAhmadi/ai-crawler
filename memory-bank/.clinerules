@@ -1,0 +1,171 @@
+# Cline Rules: AI Web Crawler CLI Tool
+
+## Project Patterns
+
+### Code Style
+- Use TypeScript for all new code
+- Follow a modular architecture with clear separation of concerns
+- Use async/await for asynchronous operations
+- Implement comprehensive error handling
+- Add JSDoc comments for all public functions and classes
+- Use consistent error handling patterns across MCP servers
+- Implement fallback mechanisms for external API dependencies
+
+### Naming Conventions
+- Use camelCase for variables and functions
+- Use PascalCase for classes and interfaces
+- Use UPPER_SNAKE_CASE for constants
+- Use descriptive names that clearly indicate purpose
+- Prefix MCP server handlers with 'handle' (e.g., handleSearchWeb)
+- Use Config suffix for configuration interfaces (e.g., BraveSearchConfig)
+
+### File Organization
+- Group related functionality in directories
+- Keep files focused on a single responsibility
+- Use index.ts files to expose public API
+- Separate interfaces and implementations
+- Place MCP server implementations in the src/mcp directory
+- Name MCP server files with a -server suffix (e.g., crawler-server.js)
+- Use relative paths for imports within the project
+
+### API Integration
+- Use environment variables for API keys and configuration
+- Implement fallback mechanisms when APIs are unavailable
+- Add clear error messages for API failures
+- Document API setup requirements in README
+- Pass API keys through environment variables for security
+
+## Development Workflow
+
+### Implementation Priorities
+1. Focus on core functionality first
+2. Add error handling early
+3. Implement tests alongside features
+4. Optimize performance after functionality is complete
+5. Ensure MCP servers can be tested independently
+6. Implement fallback mechanisms for external dependencies
+
+### Testing Strategy
+- Write unit tests for all components
+- Create integration tests for component interactions
+- Develop end-to-end tests for complete workflows
+- Use mock objects for external dependencies
+- Create dedicated test scripts for MCP servers
+- Test MCP server communication with JSON-RPC requests
+- Test with and without API keys to ensure fallbacks work
+
+## User Preferences
+
+### CLI Experience
+- Provide clear, concise error messages
+- Include progress indicators for long-running operations
+- Support both verbose and quiet modes
+- Offer help text for all commands and options
+- Allow configuration of MCP server paths
+- Provide clear instructions for API key setup
+
+### Output Formatting
+- Use clean, consistent markdown formatting
+- Include source attribution for information
+- Organize information in a logical hierarchy
+- Support customizable output templates
+- Enhance formatting with AI-generated summaries
+- Limit content length for readability
+
+## Technical Decisions
+
+### API Integration
+- Use Brave Search API for web search
+- Use OpenAI API for AI-powered summarization
+- Load API keys from environment variables using dotenv
+- Require valid API keys for operation
+- Use axios for API requests
+
+### MCP Server Architecture
+- Use a multi-server architecture with specialized servers
+- Implement a client manager to connect to multiple servers
+- Use stdio transport for server communication
+- Handle server lifecycle management carefully
+- Ensure proper cleanup of resources
+- Pass API keys to MCP servers through environment variables
+
+### Browser Automation
+- Use Puppeteer for JavaScript-heavy websites
+- Implement intelligent waiting for page elements
+- Handle browser crashes and restarts gracefully
+- Manage browser resources efficiently
+- Isolate browser automation in a dedicated MCP server
+
+### Search Strategy
+- Use Brave Search API as primary search method
+- Require valid API key for operation
+- Prioritize authoritative sources
+- Balance breadth and depth in crawling
+- Enhance search results with AI-powered relevance scoring
+
+### Content Extraction
+- Use a combination of CSS selectors and XPath
+- Implement site-specific extractors for common websites
+- Use heuristics for identifying relevant content
+- Aggregate information from multiple sources
+- Use AI to determine content relevance to the query
+
+## Known Challenges
+
+### API Management
+- Handle API rate limits and quotas
+- Implement caching to reduce API calls
+- Provide clear error messages for missing or invalid API keys
+- Balance API costs with functionality
+- Secure API keys in environment variables using dotenv
+
+### MCP Server Communication
+- Handle communication errors gracefully
+- Implement timeouts for long-running operations
+- Ensure proper cleanup of resources
+- Handle server crashes and restarts
+
+### Rate Limiting
+- Implement exponential backoff for retries
+- Rotate user agents and request patterns
+- Respect robots.txt and crawling policies
+- Use caching to reduce redundant requests
+
+### Content Relevance
+- Develop scoring mechanisms for content relevance
+- Use context to determine information importance
+- Filter out advertisements and irrelevant content
+- Prioritize recent information for time-sensitive queries
+- Use AI to enhance relevance determination
+
+## Evolution Tracking
+
+### Version 0.1 (Completed)
+- Basic project setup
+- MCP server implementation
+- Browser automation capabilities
+- Memory bank documentation
+
+### Version 0.2 (Completed)
+- CLI interface
+- Basic query processing
+- Direct web requests
+- Simple markdown output
+
+### Version 0.3 (Completed)
+- MCP server architecture
+- Specialized MCP servers
+- MCP client manager
+- AI-powered search and formatting
+
+### Version 0.4 (Completed)
+- Brave Search API integration (replaced Google Custom Search)
+- OpenAI API integration for summarization
+- Environment variable support for API keys using dotenv
+- Improved error handling for missing or invalid API keys
+
+### Version 0.5 (Planned)
+- Advanced error handling and recovery
+- Caching implementation
+- Rate limiting protection
+- Site-specific extractors

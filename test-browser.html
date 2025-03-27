@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser MCP Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        input[type=text] {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Browser MCP Test Page</h1>
+    
+    <div class="container">
+        <h2>Input Test</h2>
+        <p>Type something in the input field below:</p>
+        <input type="text" id="textInput" placeholder="Type here...">
+        <button id="submitBtn">Submit</button>
+        <div class="result" id="inputResult">Result will appear here</div>
+    </div>
+    
+    <div class="container">
+        <h2>Button Click Test</h2>
+        <p>Click the buttons below to test click events:</p>
+        <button id="btn1">Button 1</button>
+        <button id="btn2">Button 2</button>
+        <button id="btn3">Button 3</button>
+        <div class="result" id="buttonResult">Result will appear here</div>
+    </div>
+    
+    <div class="container">
+        <h2>Navigation Test</h2>
+        <p>Test navigation to different sections:</p>
+        <button id="section1Btn">Section 1</button>
+        <button id="section2Btn">Section 2</button>
+        <button id="section3Btn">Section 3</button>
+        
+        <div id="section1" class="result" style="display: none;">
+            <h3>Section 1</h3>
+            <p>This is the content of section 1.</p>
+        </div>
+        
+        <div id="section2" class="result" style="display: none;">
+            <h3>Section 2</h3>
+            <p>This is the content of section 2.</p>
+        </div>
+        
+        <div id="section3" class="result" style="display: none;">
+            <h3>Section 3</h3>
+            <p>This is the content of section 3.</p>
+        </div>
+    </div>
+    
+    <script>
+        // Input test
+        document.getElementById('submitBtn').addEventListener('click', function() {
+            const inputValue = document.getElementById('textInput').value;
+            document.getElementById('inputResult').textContent = `You typed: ${inputValue}`;
+            console.log(`Input submitted: ${inputValue}`);
+        });
+        
+        // Button click test
+        document.getElementById('btn1').addEventListener('click', function() {
+            document.getElementById('buttonResult').textContent = 'Button 1 was clicked!';
+            console.log('Button 1 clicked');
+        });
+        
+        document.getElementById('btn2').addEventListener('click', function() {
+            document.getElementById('buttonResult').textContent = 'Button 2 was clicked!';
+            console.log('Button 2 clicked');
+        });
+        
+        document.getElementById('btn3').addEventListener('click', function() {
+            document.getElementById('buttonResult').textContent = 'Button 3 was clicked!';
+            console.log('Button 3 clicked');
+        });
+        
+        // Navigation test
+        function hideAllSections() {
+            document.getElementById('section1').style.display = 'none';
+            document.getElementById('section2').style.display = 'none';
+            document.getElementById('section3').style.display = 'none';
+        }
+        
+        document.getElementById('section1Btn').addEventListener('click', function() {
+            hideAllSections();
+            document.getElementById('section1').style.display = 'block';
+            console.log('Navigated to Section 1');
+        });
+        
+        document.getElementById('section2Btn').addEventListener('click', function() {
+            hideAllSections();
+            document.getElementById('section2').style.display = 'block';
+            console.log('Navigated to Section 2');
+        });
+        
+        document.getElementById('section3Btn').addEventListener('click', function() {
+            hideAllSections();
+            document.getElementById('section3').style.display = 'block';
+            console.log('Navigated to Section 3');
+        });
+    </script>
+</body>
+</html>

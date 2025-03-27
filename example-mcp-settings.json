@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "ai-crawler": {
+      "command": "node",
+      "args": ["/path/to/ai-crawler/build/index.js"],
+      "disabled": false,
+      "autoApprove": []
+    },
+    "crawler": {
+      "command": "node",
+      "args": ["/path/to/ai-crawler/src/mcp/crawler-server.js"],
+      "disabled": false,
+      "autoApprove": []
+    },
+    "browser": {
+      "command": "node",
+      "args": ["/path/to/ai-crawler/src/mcp/browser-server.js"],
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}
