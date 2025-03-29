@@ -1,28 +1,34 @@
 # Active Context: AI Web Crawler CLI Tool
 
 ## Current Focus
-The project has progressed from the MCP integration phase to implementing real search API and AI summarization capabilities. We are currently focused on:
+The project has progressed from the API integration phase to implementing advanced features like concurrent crawling, clustering, multiple output formats, and comparison capabilities. We are currently focused on:
 
-1. Using real search APIs (Brave Search) for web search
-2. Implementing AI-powered summarization with OpenAI
-3. Enhancing error handling and fallback mechanisms
-4. Improving documentation and user experience
+1. Optimizing performance with domain-specific rate limiting
+2. Enhancing user experience with more CLI options
+3. Improving performance and resource usage
+4. Simplifying the user interface
+5. Adding comparison capabilities for product information
+6. Enhancing content extraction with AI-powered data extraction
 
 ## Recent Changes
-- Replaced Google Custom Search with Brave Search API for web search results
-- Maintained OpenAI API integration for AI-powered summarization
-- Updated environment variable support for API keys (BRAVE_API_KEY instead of GOOGLE_API_KEY/GOOGLE_CX)
-- Updated the MCP client manager to pass API keys to MCP servers
-- Fixed hardcoded paths to MCP server scripts
-- Removed mock data fallbacks to rely only on real API data
-- Added dotenv package for loading environment variables from .env file
-- Updated documentation with API key setup instructions
-- Improved the test script with API key checking and warnings
+- Implemented clustering for concurrent web crawling with automatic configuration
+- Added domain-specific rate limiting for better performance and politeness
+- Added support for grouping URLs by domain or TLD
+- Implemented intelligent merging of small clusters
+- Simplified CLI interface by removing unnecessary options
+- Enhanced error handling for different output formats
+- Improved file output handling for different formats
+- Updated help text with examples for new options
+- Added --compare option to compare information from multiple websites
+- Implemented comparison table generation for product information
+- Integrated OpenRouter API for AI-powered data extraction in the extractor module
+- Added fallback to regex-based extraction when API keys are not available
 
 ## Current State
 The project now has:
 - Real search API integration (Brave Search) with required API key
 - AI-powered summarization (OpenAI) with required API key
+- AI-powered data extraction (OpenRouter) with optional API key
 - MCP server architecture with specialized servers
 - Browser automation capabilities
 - Content extraction and formatting

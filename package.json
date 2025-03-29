@@ -19,6 +19,8 @@
     "commander": "^13.1.0",
     "dotenv": "^16.4.7",
     "marked": "^15.0.7",
+    "marked-gfm-heading-id": "^4.1.1",
+    "marked-highlight": "^2.2.1",
     "puppeteer": "^24.4.0"
   },
   "devDependencies": {

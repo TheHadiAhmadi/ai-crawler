@@ -2,6 +2,8 @@ import puppeteer from 'puppeteer';
 import { SearchResult } from '../search/index.js';
 import { QueryOptions } from '../query/index.js';
 import axios from 'axios';
+import { URL } from 'url';
+import os from 'os';
 
 /**
  * Crawl result interface
@@ -13,6 +15,17 @@ export interface CrawlResult {
   html: string;
   markdown: string; // Clean markdown generated from the content
   timestamp: string;
+  cluster?: string; // The cluster this result belongs to
+}
+
+/**
+ * Cluster configuration interface
+ */
+interface ClusterConfig {
+  enabled: boolean;
+  maxClusters: number;
+  clusterBy: 'domain' | 'tld' | 'custom';
+  customClusterFn?: (url: string) => string;
 }
 
 /**
@@ -50,34 +63,244 @@ export async function crawlWebsites(searchResults: SearchResult[], options: Quer
     
     // Limit the number of websites to crawl based on depth option
     const maxWebsites = Math.min(searchResults.length, options.depth || 3);
+    const limitedResults = searchResults.slice(0, maxWebsites);
     
-    // Crawl each website sequentially to avoid rate limiting issues
-    for (let i = 0; i < maxWebsites; i++) {
-      const searchResult = searchResults[i];
-      
-      if (options.verbose) {
-        console.log(`Crawling website ${i + 1}/${maxWebsites}: ${searchResult.url}`);
-      }
-      
-      // Crawl the website
-      const result = await crawlWebsite(searchResult.url, options);
-      
-      // Add the result to the array if it's not null
-      if (result) {
-        results.push(result);
-      }
-      
-      // Add a small delay between requests to avoid overwhelming servers
-      if (i < maxWebsites - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
+    // Determine concurrency level (default to 3 if not specified)
+    const concurrency = options.concurrency || 3;
+    
+    // Configure clustering with default values
+    const clusterConfig: ClusterConfig = {
+      enabled: true,
+      maxClusters: Math.min(os.cpus().length, 4),
+      clusterBy: 'domain'
+    };
+    
+    if (options.verbose) {
+      console.log(`Using concurrency level: ${concurrency}`);
     }
     
-    return results;
+    // Always use clustering approach with default configuration
+    return await crawlWithClustering(limitedResults, options, clusterConfig);
   } catch (error) {
     console.error('Error crawling websites:', error);
     return [];
   }
+}
+
+/**
+ * Crawl websites using clustering approach
+ * 
+ * @param searchResults Array of search results to crawl
+ * @param options Query options
+ * @param clusterConfig Clustering configuration
+ * @returns Array of crawl results
+ */
+async function crawlWithClustering(
+  searchResults: SearchResult[], 
+  options: QueryOptions, 
+  clusterConfig: ClusterConfig
+): Promise<CrawlResult[]> {
+  // Group URLs by cluster
+  const clusters = groupUrlsByClusters(searchResults, clusterConfig);
+  
+  if (options.verbose) {
+    console.log(`Grouped URLs into ${Object.keys(clusters).length} clusters`);
+    Object.entries(clusters).forEach(([clusterName, urls]) => {
+      console.log(`Cluster "${clusterName}": ${urls.length} URLs`);
+    });
+  }
+  
+  const results: CrawlResult[] = [];
+  const concurrencyPerCluster = options.concurrency || 3;
+  
+  // Process each cluster in parallel
+  const clusterPromises = Object.entries(clusters).map(async ([clusterName, clusterUrls]) => {
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    
+    try {
+      if (options.verbose) {
+        console.log(`Processing cluster "${clusterName}" with ${clusterUrls.length} URLs`);
+      }
+      
+      const clusterResults: CrawlResult[] = [];
+      
+      // Process URLs in this cluster with concurrency
+      for (let i = 0; i < clusterUrls.length; i += concurrencyPerCluster) {
+        const batch = clusterUrls.slice(i, i + concurrencyPerCluster);
+        
+        if (options.verbose) {
+          console.log(`Cluster "${clusterName}": Crawling batch ${Math.floor(i / concurrencyPerCluster) + 1}/${Math.ceil(clusterUrls.length / concurrencyPerCluster)}`);
+        }
+        
+        const promises = batch.map(async (url) => {
+          const result = await crawlWebsite(url, options, browser);
+          if (result) {
+            result.cluster = clusterName;
+          }
+          return result;
+        });
+        
+        const batchResults = await Promise.all(promises);
+        batchResults.forEach(result => {
+          if (result) clusterResults.push(result);
+        });
+        
+        // Add delay between batches within a cluster
+        if (i + concurrencyPerCluster < clusterUrls.length) {
+          // Use cluster-specific delay based on domain policies
+          const delayMs = getClusterSpecificDelay(clusterName);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+      }
+      
+      return clusterResults;
+    } finally {
+      await browser.close();
+    }
+  });
+  
+  // Wait for all clusters to complete
+  const clusterResults = await Promise.all(clusterPromises);
+  
+  // Flatten results from all clusters
+  return clusterResults.flat();
+}
+
+/**
+ * Group URLs by clusters based on the clustering configuration
+ * 
+ * @param searchResults Array of search results
+ * @param clusterConfig Clustering configuration
+ * @returns Object mapping cluster names to arrays of URLs
+ */
+function groupUrlsByClusters(
+  searchResults: SearchResult[], 
+  clusterConfig: ClusterConfig
+): Record<string, string[]> {
+  const clusters: Record<string, string[]> = {};
+  
+  searchResults.forEach(result => {
+    let clusterName: string;
+    
+    try {
+      const urlObj = new URL(result.url);
+      
+      switch (clusterConfig.clusterBy) {
+        case 'domain':
+          clusterName = urlObj.hostname;
+          break;
+        case 'tld':
+          // Extract the TLD (e.g., .com, .org)
+          const domainParts = urlObj.hostname.split('.');
+          clusterName = domainParts.length > 1 ? 
+            domainParts[domainParts.length - 1] : 
+            urlObj.hostname;
+          break;
+        case 'custom':
+          if (clusterConfig.customClusterFn) {
+            clusterName = clusterConfig.customClusterFn(result.url);
+          } else {
+            clusterName = 'default';
+          }
+          break;
+        default:
+          clusterName = 'default';
+      }
+    } catch (error) {
+      // If URL parsing fails, use a default cluster
+      clusterName = 'invalid-urls';
+    }
+    
+    // Initialize the cluster array if it doesn't exist
+    if (!clusters[clusterName]) {
+      clusters[clusterName] = [];
+    }
+    
+    // Add the URL to the cluster
+    clusters[clusterName].push(result.url);
+  });
+  
+  // If we have too many clusters, merge smaller ones
+  const maxClusters = clusterConfig.maxClusters;
+  if (Object.keys(clusters).length > maxClusters) {
+    return mergeSmallClusters(clusters, maxClusters);
+  }
+  
+  return clusters;
+}
+
+/**
+ * Merge smaller clusters to reduce the total number of clusters
+ * 
+ * @param clusters Object mapping cluster names to arrays of URLs
+ * @param maxClusters Maximum number of clusters to have
+ * @returns Merged clusters
+ */
+function mergeSmallClusters(
+  clusters: Record<string, string[]>, 
+  maxClusters: number
+): Record<string, string[]> {
+  // If we already have fewer clusters than the maximum, return as is
+  if (Object.keys(clusters).length <= maxClusters) {
+    return clusters;
+  }
+  
+  // Sort clusters by size (number of URLs)
+  const sortedClusters = Object.entries(clusters).sort((a, b) => b[1].length - a[1].length);
+  
+  // Keep the largest clusters up to maxClusters-1
+  const largestClusters = sortedClusters.slice(0, maxClusters - 1);
+  
+  // Merge all remaining small clusters
+  const smallClusters = sortedClusters.slice(maxClusters - 1);
+  
+  const result: Record<string, string[]> = {};
+  
+  // Add the largest clusters to the result
+  largestClusters.forEach(([name, urls]) => {
+    result[name] = urls;
+  });
+  
+  // Create a merged cluster for all small clusters
+  const mergedUrls = smallClusters.flatMap(([_, urls]) => urls);
+  if (mergedUrls.length > 0) {
+    result['merged-small-clusters'] = mergedUrls;
+  }
+  
+  return result;
+}
+
+/**
+ * Get a cluster-specific delay for rate limiting
+ * This can be customized based on domain-specific policies
+ * 
+ * @param clusterName Name of the cluster (usually domain name)
+ * @returns Delay in milliseconds
+ */
+function getClusterSpecificDelay(clusterName: string): number {
+  // Default delay
+  let delay = 2000;
+  
+  // Example: Add longer delays for specific domains known to have strict rate limiting
+  const strictDomains = [
+    'wikipedia.org',
+    'amazon.com',
+    'linkedin.com',
+    'facebook.com',
+    'twitter.com'
+  ];
+  
+  // Check if the cluster name contains any of the strict domains
+  for (const domain of strictDomains) {
+    if (clusterName.includes(domain)) {
+      return 5000; // 5 seconds for strict domains
+    }
+  }
+  
+  return delay;
 }
 
 /**
@@ -100,7 +323,7 @@ async function isAllowedByRobotsTxt(url: string): Promise<boolean> {
  * @param options Query options
  * @returns Crawl result
  */
-async function crawlWebsite(url: string, options: QueryOptions): Promise<CrawlResult | null> {
+async function crawlWebsite(url: string, options: QueryOptions, browser: any): Promise<CrawlResult | null> {
   try {
     // Check if crawling is allowed
     const isAllowed = await isAllowedByRobotsTxt(url);
@@ -110,12 +333,6 @@ async function crawlWebsite(url: string, options: QueryOptions): Promise<CrawlRe
       }
       return null;
     }
-    
-    // Launch a new browser instance
-    const browser = await puppeteer.launch({
-      headless: true, // Run in headless mode
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
     
     try {
       // Create a new page
@@ -219,8 +436,8 @@ async function crawlWebsite(url: string, options: QueryOptions): Promise<CrawlRe
       
       return result;
     } finally {
-      // Close the browser
-      await browser.close();
+      // 
+      // page.close()
     }
   } catch (error) {
     console.error(`Error crawling ${url}:`, error);

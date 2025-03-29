@@ -84,8 +84,10 @@ The project has progressed from the MCP integration phase to the Real API Integr
 - ✅ MCP server architecture for AI integration
 - ✅ AI-powered search enhancement
 - ✅ AI-powered summarization (OpenAI)
+- ✅ AI-powered data extraction (OpenRouter)
 - ✅ Required API key validation
 - ✅ Basic content relevance determination
+- ✅ Fallback mechanisms for missing API keys
 
 ## What's In Progress
 
@@ -103,6 +105,18 @@ The project has progressed from the MCP integration phase to the Real API Integr
 - 🔄 Site-specific extractors
 - 🔄 Enhanced content relevance scoring
 - 🔄 Support for multimedia content
+
+### Performance Optimization
+- ✅ Concurrent web crawling with configurable concurrency level
+- ✅ Automatic clustering for concurrent crawls with domain-specific rate limiting
+- ✅ Intelligent grouping of URLs by domain or TLD
+- ✅ Simplified user interface with smart defaults
+- 🔄 Resource usage optimization
+
+### Output Format Enhancement
+- ✅ Support for multiple output formats (markdown, HTML, JSON)
+- ✅ Format-specific file output handling
+- 🔄 Additional output format options (CSV, XML)
 
 ## What's Left to Build
 
@@ -175,13 +189,21 @@ The project has progressed from the MCP integration phase to the Real API Integr
 **Status**: 🔄 In Progress
 
 ## Recent Achievements
-- Replaced Google Custom Search with Brave Search API for web search results
-- Maintained OpenAI API integration for AI-powered summarization
-- Updated environment variable support for API keys (BRAVE_API_KEY instead of GOOGLE_API_KEY/GOOGLE_CX)
-- Updated the MCP client manager to pass API keys to MCP servers
-- Fixed hardcoded paths to MCP server scripts
-- Removed mock data fallbacks to rely only on real API data
-- Added dotenv package for loading environment variables from .env file
-- Improved error handling for missing or invalid API keys
-- Updated documentation with API key setup instructions
-- Improved the test script with API key checking and warnings
+- Implemented automatic clustering for concurrent web crawling
+- Added domain-specific rate limiting for better performance and politeness
+- Implemented intelligent merging of small clusters
+- Added support for grouping URLs by domain or TLD
+- Simplified CLI interface by removing unnecessary options
+- Improved file output handling for different formats
+- Updated help text with examples for new options
+- Enhanced error handling for different output formats
+- Optimized web crawling performance with batch processing
+- Added JSON output format with structured data
+- Improved HTML output with better styling
+- Updated memory bank documentation to reflect new features
+- Added --compare option to compare information from multiple websites
+- Implemented comparison table generation for product information
+- Enhanced JSON output to include comparison data
+- Integrated OpenRouter API for AI-powered data extraction
+- Added fallback to regex-based extraction when API keys are not available
+- Updated environment variable documentation for OpenRouter API

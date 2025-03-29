@@ -4,6 +4,11 @@ import { extractContent } from '../extractor/index.js';
 import { formatResults } from '../formatter/index.js';
 
 /**
+ * Output format type
+ */
+export type OutputFormatType = 'markdown' | 'html' | 'json';
+
+/**
  * Options for query processing
  */
 export interface QueryOptions {
@@ -13,6 +18,9 @@ export interface QueryOptions {
   verbose: boolean;
   maxResults?: number;
   output?: string; // Output file path for results
+  concurrency?: number; // Number of concurrent crawling operations
+  outputType?: OutputFormatType; // Type of output format
+  compare?: boolean; // Whether to compare results from multiple websites
 }
 
 /**
@@ -22,9 +30,9 @@ export interface QueryOptions {
  * 
  * @param query The natural language query
  * @param options Query processing options
- * @returns Formatted results in markdown and HTML
+ * @returns Formatted results in markdown, HTML, and JSON
  */
-export async function processQuery(query: string, options: QueryOptions): Promise<{ markdown: string, html: string }> {
+export async function processQuery(query: string, options: QueryOptions): Promise<{ markdown: string, html: string, json?: string }> {
   try {
     // For now, implement a simple version that returns a placeholder
     // This will be expanded in future iterations
@@ -63,7 +71,7 @@ export async function processQuery(query: string, options: QueryOptions): Promis
       console.log('Formatting results...');
     }
     
-    // Step 5: Format the results in markdown and HTML
+    // Step 5: Format the results in markdown, HTML, and JSON
     const formattedResults = await formatResults(extractedContent, query, options);
     
     return formattedResults;
@@ -72,7 +80,13 @@ export async function processQuery(query: string, options: QueryOptions): Promis
     const errorMessage = `Error processing query: ${error instanceof Error ? error.message : String(error)}`;
     return { 
       markdown: errorMessage, 
-      html: `<html><body><h1>Error</h1><p>${errorMessage}</p></body></html>` 
+      html: `<html><body><h1>Error</h1><p>${errorMessage}</p></body></html>`,
+      json: JSON.stringify({
+        query,
+        timestamp: new Date().toISOString(),
+        error: errorMessage,
+        results: []
+      }, null, 2)
     };
   }
 }

@@ -164,8 +164,16 @@
 - Environment variable support for API keys using dotenv
 - Improved error handling for missing or invalid API keys
 
-### Version 0.5 (Planned)
+### Version 0.5 (Current)
+- Automatic clustering for concurrent crawls
+- Domain-specific rate limiting
+- Intelligent grouping of URLs
+- Simplified CLI interface with smart defaults
+- Comparison feature for comparing data across websites
+
+### Version 0.6 (Planned)
 - Advanced error handling and recovery
 - Caching implementation
 - Rate limiting protection
 - Site-specific extractors
+- Enhanced comparison capabilities

@@ -210,7 +210,7 @@ class CrawlerMcpServer {
       
       try {
         // Navigate to the URL
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        await page.goto(url, { waitUntil: 'DOMContentLoaded', timeout: 30000 });
         
         // Wait for the selector to be available
         await page.waitForSelector(selector, { timeout: 10000 });
@@ -268,7 +268,7 @@ class CrawlerMcpServer {
       
       try {
         // Navigate to the URL
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        await page.goto(url, { waitUntil: 'DOMContentLoaded', timeout: 30000 });
         
         // Extract links
         const links = await page.evaluate(() => {
